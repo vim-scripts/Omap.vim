@@ -1,0 +1,180 @@
+*Omap.txt*  Global plugin to create user-defined Operators - v1.0
+
+Provides commands for user-defined operator commands (see |Operator|).
+
+1. General                  |Omap_general|
+2. Omap Commands            |Omap_cmds|
+3. Omap example: vimscript  |Omap_example|
+4. DotCommand               |DotCommand|
+5. Installation             |Omap_Installation|
+
+
+==============================================================================
+
+1. General                                              *Omap_general*
+
+    Omap.vim provides a set of commands for defining and manipulating
+    user-defined operator mappings.  For more information see |operator|. 
+
+    In Vim operators are normal-mode commands such as d, y, and g? which wait
+    for a motion or text object |text-objects| and act on the specified
+    region.
+
+    User-defined operators provided by Omap.vim behave similarly to the
+    built-in varieties. This allows operators to be defined for facilities
+    provided by other scripts like commenting commands.
+
+    Omaps can be repeated using the dot |.| command. I have also provided an
+    interface to allow other mappings to be configured to similarly be
+    repeated.  See |.|.
+
+    Below the commands defined by Omap.vim are described and an example is
+    provided showing how Omap can be used to provide a commenting operator in
+    conjuction with the EnhancedCommentify.vim script.
+
+
+==============================================================================
+
+2. Omap Commands                                        *Omap_cmds*
+
+2.1 Omap commands
+
+:Omap   {lhs} {rhs}                                     *:Omap*
+                        Maps the key sequence {lhs} to an operator which will
+                        wait for a motion of text-object and apply {rhs} to
+                        the specified area.
+
+                        The special arguments <buffer>, <silent>, <script>,
+                        and <unique> may be used in defining an Omap in the
+                        same way as they would for other mappings.
+                        See |:map-<buffer>|, |:map-<silent>|, |:map-<script>|,
+                        and |:map-<unique>|
+
+:Omap   {lhs} 
+                        Prints all Omaps defined that start with {lhs}.
+
+:Omap
+                        Prints all defined Omaps.
+
+:Onoremap   {lhs} {rhs}                                 *:Onoremap*
+:Onoremap   {lhs}
+:Onoremap
+                        Onoremap commands work the same as the above Omap
+                        commands but when defining a map any character
+                        sequences used in the {rhs} will not be interpreted as
+                        maps themselves.
+    
+:Ounmap   {lhs}                                         *:Ounmap*
+                        Removes the Omap specified by {lhs}.
+
+:Omapclear                                              *:OmapClear*
+                        Removes all Omaps.
+
+
+2.2 DotCommand commands                                 *DotCommand_cmds*
+
+:DotCommandSet  'cmd'                                   *:DotCommandSet*
+                        Sets the next command to be repeated by the dot |.|
+                        command. The arguement should be provided as a quoted
+                        string.
+
+:DotCommandClear                                        *:DotCommandClear*
+                        Clears DotCommand so that the next time dot |.| is
+                        pressed it will be act like the unmapped . command.
+
+
+==============================================================================
+
+3. Omap Example: Integration with EnhancedCommentify.vim   *Omap_example*
+
+    As an example I will show how to use Omap.vim with Meikel Brandmeyer's 
+    popular EnhancedCommentify.vim script. This script can be obtained from 
+    the following location: 
+
+        http://www.vim.org/scripts/script.php?script_id=23
+
+    In order to create commenting and uncommenting operators put the following
+    code in your .vimrc file: >
+
+        let g:EnhCommentifyUserBindings = 'yes'
+        runtime plugin/Omap.vim
+        Omap <silent> <unique> <leader>c <Plug>Commentj
+        Omap <silent> <unique> <leader>u <Plug>DeCommentj
+< 
+    This will override the default EnhCommentify bindings with the operators
+    \c and \u (assuming you have not set the |mapleader| variable). 
+    
+    The 'j' at the end of the <Plug>'s moves the cursor to the next line after
+    the commented/uncommented code which I find useful, you may choose to
+    leave it off.
+
+    These operators will now work with various motions and text objects, for
+    example:
+
+	Keystroke   Action ~
+        \cc         comments a line
+        .           repeats the last command (this works for Omaps)
+        3\cc        comments three lines
+        \uu         uncomments a line
+        \c4j        comments the current line and the four following lines
+        \caB        comments a block of code
+
+    Note: If you have defined new |omap|s (operator-pending mode maps) they
+    will not work with Omap (Operator) mappings. Because of how Omap is
+    implemented it will only recognise text-objects and motions which are
+    defined as |vmap|s.  This is because internally Omap uses visual mode to
+    select an area and then applies the command to it.
+
+
+==============================================================================
+
+4. DotCommand                                              *DotCommand*
+
+    Omap includes a facility to allow mapped commands to be repeated using the
+    dot |.| command. If you wish to allow other mapped commands to repeat in
+    the same way use |:DotCommandSet| command
+
+    DotCommandSet can be set at the end of your mapped function, but you
+    probably won't know what keystroke is mapped to the function. 
+
+    More practically, you can create the mapping using DotCommandSet as shown
+    in the following example: >
+
+        nmap \q :s/\(\w*\)\s*\(\w*\)/\2\1/<cr>:DotCommandSet '\q'<cr>
+<
+    Now when you type \q the first two words in a sentence will be swapped,
+    move to another line and type dot |.| and the swap will be repeated for
+    that line.  (You probably won't find this particular mapping overly useful
+    though)
+
+
+==============================================================================
+
+5. Installation                                          *Omap_Installation*
+
+    To install, put Omap.vim in your plugins directory and put Omap.txt in
+    your doc directory. Run |:helptags| on your doc directory to install
+    documentation into the vim help system.
+
+    You can test your installation by running the undocumented debugging
+    command :OmapBuiltins. This command redefines the standard builtin
+    operators with Omap mappings. 
+    
+    To test this has worked check that the output of ':nmap d' ends with
+    "...DoMap('d')<CR>". 
+    
+    Open a scratch document and try to delete some lines with a command like
+    'd3j' should do. If four lines get deleted the install is probably
+    successful. 
+
+    Omap.vim is still in development and may have all sorts of problems, so
+    let me know if you think something needs to be fixed.
+
+==============================================================================
+
+ Version: 1.0
+ Last change: 23 Mar 2005
+ Timestamp: <Omap.txt Wed 2005/03/23 16:05:11 BEC WS16017>
+ Maintainer: Ben Collerson <benc at bur dot st>
+ vim:ft=help:tw=78:ts=8:norl:
+
